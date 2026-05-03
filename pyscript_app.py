@@ -9,6 +9,34 @@ import segno
 extracted_upi = ""
 uploaded_logo_bytes = None
 
+def normalize_upi_uri(raw: str) -> str:
+    """Return a canonical UPI pay URI keeping only pa, pn, cu; drop all other params."""
+    raw = (raw or "").strip()
+    if not raw.lower().startswith("upi://pay"):
+        return raw
+
+    if "?" not in raw:
+        return "upi://pay"
+
+    _, query = raw.split("?", 1)
+
+    params = {}
+    for part in query.split("&"):
+        if not part:
+            continue
+        if "=" in part:
+            k, v = part.split("=", 1)
+        else:
+            k, v = part, ""
+        k = k.strip()
+        if k:
+            params[k] = v
+
+    allowed = ["pa", "pn", "cu"]
+    filtered = [f"{k}={params[k]}" for k in allowed if params.get(k)]
+
+    return "upi://pay" + ("?" + "&".join(filtered) if filtered else "")
+
 def process_image_with_jsqr(event):
     global extracted_upi
     
@@ -51,7 +79,7 @@ def process_image_with_jsqr(event):
         code = jsQR(imageData.data, imageData.width, imageData.height, options)
     
     if code:
-        extracted_upi = code.data
+        extracted_upi = normalize_upi_uri(code.data)
         document.getElementById("extracted-text").textContent = extracted_upi
         document.getElementById("extraction-result").classList.remove("hidden")
         document.getElementById("step-customize").classList.remove("hidden")

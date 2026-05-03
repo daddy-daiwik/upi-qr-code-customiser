@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom UPI QR Generator</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0ea5e9">
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Load jsQR library -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+
+    <!-- PyScript -->
+    <link rel="stylesheet" href="https://pyscript.net/releases/2023.11.1/core.css" />
+    <script type="module" src="https://pyscript.net/releases/2023.11.1/core.js"></script>
+
+    <py-config>
+        packages = ["pillow", "segno", "qrcode-artistic"]
+    </py-config>
+</head>
+<body>
+    <div id="pyscript-loading" class="loading-overlay">
+        <div class="spinner"></div>
+        <p>Loading Python Environment...</p>
+    </div>
+
+    <div class="app-container">
+        <header>
+            <h1>UPI QR Customizer</h1>
+            <p>Upload your BHIM UPI QR and create a stunning new one using Python in your browser!</p>
+        </header>
+
+        <main>
+            <!-- Step 1: Upload -->
+            <section class="card" id="step-upload">
+                <h2>1. Extract UPI ID</h2>
+                <div class="upload-area" id="drop-zone">
+                    <p>Click to upload or drag & drop your existing QR code</p>
+                    <input type="file" id="qr-upload" accept="image/*" hidden>
+                    <button class="btn primary" onclick="document.getElementById('qr-upload').click()">Upload QR Code</button>
+                </div>
+                <div id="extraction-result" class="hidden">
+                    <p class="success-text">UPI ID Extracted Successfully!</p>
+                    <code id="extracted-text"></code>
+                </div>
+            </section>
+
+            <!-- Step 2: Customize -->
+            <section class="card hidden" id="step-customize">
+                <h2>2. Customize Your New QR</h2>
+                
+                <div class="customizer-grid">
+                    <div class="controls">
+                        <div class="form-group">
+                            <label for="color-dots">Foreground Color</label>
+                            <input type="color" id="color-dots" value="#000000">
+                        </div>
+                        <div class="form-group">
+                            <label for="color-bg">Background Color</label>
+                            <input type="color" id="color-bg" value="#ffffff">
+                        </div>
+                        <div class="form-group">
+                            <label>Center Logo/Background Image (Optional)</label>
+                            <input type="file" id="logo-upload" accept="image/*" hidden>
+                            <button class="btn secondary outline" onclick="document.getElementById('logo-upload').click()">Upload Image</button>
+                            <span id="logo-filename" class="text-sm text-gray"></span>
+                        </div>
+                        <button class="btn primary" id="generate-btn">Generate QR Code</button>
+                        <button class="btn secondary" id="download-btn" disabled>Download Image</button>
+                    </div>
+
+                    <div class="preview-area">
+                        <div id="qr-preview" class="qr-placeholder">
+                            <span>Preview</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Hidden canvas for PyScript to read image data -->
+    <canvas id="canvas" hidden></canvas>
+
+    <script type="py" src="./pyscript_app.py"></script>
+    
+    <script>
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', async () => {
+                try {
+                    await navigator.serviceWorker.register('./sw.js');
+                    console.log('[App] SW registered');
+                } catch (err) {
+                    console.error('[App] SW registration failed:', err);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
